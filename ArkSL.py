@@ -2,6 +2,7 @@
 
 import sys
 
+from PyQt5 import QtCore
 from PyQt5.QtCore import QSize, Qt, QUrl
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QWidget, QHBoxLayout, QLineEdit
 from PyQt5.QtGui import QMovie
@@ -15,6 +16,7 @@ import pam
 import argparse
 import glob
 import random
+import re 
 
 ## background = sys.argv[1]
 
@@ -45,6 +47,7 @@ class MainWindow(QMainWindow):
             #animation = QMovie("circle.gif")
             animation = QMovie(self.background)
             self.anim = QLabel()
+            self.anim.setAlignment(QtCore.Qt.AlignCenter)
             self.anim.setMovie(animation)
             animation.start()
             self.background_to_display = self.anim
@@ -70,7 +73,11 @@ class MainWindow(QMainWindow):
         pwdbox = QLineEdit(self)
         pwdbox.setEchoMode(QLineEdit.Password)
         pwdbox.returnPressed.connect(partial(self.returnPressed, pwdbox))
-        pwdbox.move(590, 350)
+        if self.args.g and re.search('as[0-9]{0,5}\.gif', self.args.g):
+        #if self.args.g == '/tmp/as.gif':
+            pwdbox.move(590, 700)
+        else:
+            pwdbox.move(590, 350)
         pwdbox.resize(200,20)
         pwdbox.setStyleSheet("QLineEdit"
                                 "{"
