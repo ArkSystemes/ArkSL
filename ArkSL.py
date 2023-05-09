@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         self.setCentralWidget(widget)
         self.setFixedSize(1366,768)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self.background_to_display = ""
 
@@ -94,6 +95,7 @@ class MainWindow(QMainWindow):
             # Re-enable the Alt key at login
             os.system("xmodmap -e 'keycode 64=Alt_L'")
             os.system("xmodmap -e 'keycode 68=F2'")
+            os.system("dunstctl set-paused false")
             sys.exit(0)
         else:
             print('pas login')
@@ -120,6 +122,8 @@ if __name__ == '__main__':
     # Disable Alt key at startup to prevent Alt+ combination
     os.system("xmodmap -e 'keycode 64=NoSymbol'") #Alt
     os.system("xmodmap -e 'keycode 68=NoSymbol'") #F2
+    # Disable dunst notification 
+    os.system("dunstctl set-paused true")
 
     app = QApplication(sys.argv)
 
