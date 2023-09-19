@@ -1,11 +1,13 @@
 #!/usr/bin/python3 
 
+from i3 import disable_scr, enable_scr, ws_backup, ws_restore
+
 import sys
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QSize, Qt, QUrl
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QWidget, QHBoxLayout, QLineEdit
-from PyQt5.QtGui import QMovie
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QWidget, QHBoxLayout, QLineEdit, QDesktopWidget
+from PyQt5.QtGui import QMovie, QGuiApplication
 
 from PyQt5.QtWebEngineWidgets import *
 
@@ -17,8 +19,11 @@ import argparse
 import glob
 import random
 import re 
+import time
 
 ## background = sys.argv[1]
+
+
 
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QMainWindow):
@@ -26,14 +31,21 @@ class MainWindow(QMainWindow):
         self.args = args
         super().__init__()
 
+
         self.setWindowTitle("ArkScreenLocker v1")
         self.setCursor(Qt.BlankCursor)
         self.setStyleSheet("background-color: black;")
 
+
+        screen_resolution = QDesktopWidget().screenGeometry()
+        self.main_width, self.main_height = screen_resolution.width(), screen_resolution.height()
+
         widget = QWidget()
         self.setCentralWidget(widget)
-        self.setFixedSize(1366,768)
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setFixedSize(self.main_width, self.main_height+30)
+        #self.setFixedSize(1366,768)
+        #self.setFixedSize(500, 500)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint|QtCore.Qt.FramelessWindowHint)
 
         self.background_to_display = ""
 
@@ -52,6 +64,8 @@ class MainWindow(QMainWindow):
             self.anim.setMovie(animation)
             animation.start()
             self.background_to_display = self.anim
+
+
 
         if self.background_type == 'web':
             ## URL DEFAULT
@@ -76,15 +90,20 @@ class MainWindow(QMainWindow):
         pwdbox.returnPressed.connect(partial(self.returnPressed, pwdbox))
         if self.args.g and re.search('as[0-9]{0,5}\.gif', self.args.g):
         #if self.args.g == '/tmp/as.gif':
-            pwdbox.move(590, 700)
+            x = (self.main_width - 200) // 2
+            y = self.main_height - 100 - 100
+            pwdbox.move(x, y)
+            #pwdbox.move(590, 700)
         else:
             pwdbox.move(590, 350)
+            #pwdbox.move(50, 50)
         pwdbox.resize(200,20)
         pwdbox.setStyleSheet("QLineEdit"
                                 "{"
                                 "background : #171819; color: #FFFFFF;"
                                 "}")
         self.pwdbox = QLabel(widget)
+
 
     def returnPressed(self, pwdbox):
         #print(pwdbox.text())
@@ -96,9 +115,14 @@ class MainWindow(QMainWindow):
             os.system("xmodmap -e 'keycode 64=Alt_L'")
             os.system("xmodmap -e 'keycode 68=F2'")
             os.system("dunstctl set-paused false")
+            enable_scr()
+            time.sleep(2)
+            ws_restore(ws_keep) 
+
             sys.exit(0)
         else:
             print('pas login')
+
 
 
 def random_gif():
@@ -118,12 +142,16 @@ if __name__ == '__main__':
     parser.add_argument('-u', help='Url to display.', type=str)
     args = parser.parse_args()
 
-
     # Disable Alt key at startup to prevent Alt+ combination
     os.system("xmodmap -e 'keycode 64=NoSymbol'") #Alt
     os.system("xmodmap -e 'keycode 68=NoSymbol'") #F2
     # Disable dunst notification 
     os.system("dunstctl set-paused true")
+
+    # Keep i3 ws placement
+    ws_keep = ws_backup()
+    ## disable screen 1 2, keep 0
+    disable_scr()
 
     app = QApplication(sys.argv)
 
